@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Panel Nacional GCOP – Locadores EsSalud 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f6f9;color:#1a1a1a}
+header{background:#1F4E79;color:#fff;padding:14px 24px}
+.container{max-width:1400px;margin:20px auto;padding:0 16px}
+.card{background:#fff;border:1px solid #cfd7e6;border-radius:8px;margin-bottom:16px;overflow:hidden}
+.card-header{background:#2E75B6;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;
+  display:flex;justify-content:space-between;align-items:center}
+.card-body{padding:16px}
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.stat-box{background:#f0f5fc;border:1px solid #c0d0e8;border-radius:7px;padding:14px;text-align:center}
+.stat-lbl{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.stat-val{font-size:26px;font-weight:700;color:#1F4E79}
+.stat-box.verde .stat-val{color:#1e8449}
+.stat-box.amarillo .stat-val{color:#d68910}
+.stat-box.rojo .stat-val{color:#c0392b}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#1F4E79;color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap}
+tbody tr{border-bottom:1px solid #eef0f5;cursor:pointer}
+tbody tr:nth-child(even){background:#fafbfd}
+tbody tr:hover{background:#e8f0fb}
+tbody td{padding:7px 10px;vertical-align:middle}
+.semaforo{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+  border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.sem-rojo{background:#ffebee;color:#c0392b;border:1px solid #f5c6cb}
+.sem-amarillo{background:#fff8e1;color:#d68910;border:1px solid #ffeaa0}
+.sem-verde{background:#e8f5e9;color:#1e8449;border:1px solid #a9dfbf}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot-r{background:#e74c3c}.dot-a{background:#f39c12}.dot-v{background:#27ae60}
+.progress-bar{background:#e0e0e0;border-radius:10px;height:7px;overflow:hidden;min-width:60px}
+.progress-fill{height:100%;border-radius:10px}
+.btn{padding:7px 16px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-refresh{background:#2E75B6;color:#fff}.btn-refresh:hover{background:#1F4E79}
+.btn-logout{background:rgba(255,255,255,.2);border:none;color:#fff;
+  padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px}
+.detail-panel{display:none;background:#f9fbff;border:1px solid #c0d0e8;
+  border-radius:8px;margin-top:12px;padding:14px}
+.detail-panel.open{display:block}
+.detail-table td,.detail-table th{padding:5px 8px;font-size:11px}
+.tab-btns{display:flex;gap:8px;margin-bottom:16px}
+.tab-btn{padding:8px 16px;border:1px solid #c0d0e8;border-radius:6px;background:#fff;
+  cursor:pointer;font-size:12px;font-weight:600;color:#555}
+.tab-btn.active{background:#1F4E79;color:#fff;border-color:#1F4E79}
+.tab-content{display:none}.tab-content.active{display:block}
+.loading{text-align:center;padding:40px;color:#999;font-size:14px}
+.last-update{font-size:11px;color:#aaa;text-align:right;margin-bottom:8px}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h1 style="font-size:15px;font-weight:700">🗺️ Panel Nacional GCOP-GFPS — Seguimiento de Locadores</h1>
+      <p style="font-size:11px;opacity:.75;margin-top:2px">EsSalud | II Trimestre 2026 | Actualización automática cada 60s</p>
+    </div>
+    <button class="btn-logout" onclick="cerrarSesion()">✕ Salir</button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Stats nacionales -->
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-lbl">Total Redes/OPNs</div><div class="stat-val" id="s-redes">—</div></div>
+    <div class="stat-box"><div class="stat-lbl">Total IPRESS</div><div class="stat-val" id="s-ipress">—</div></div>
+    <div class="stat-box verde"><div class="stat-lbl">✅ IPRESS Completas</div><div class="stat-val" id="s-verde">—</div></div>
+    <div class="stat-box amarillo"><div class="stat-lbl">⚠️ En progreso</div><div class="stat-val" id="s-amarillo">—</div></div>
+    <div class="stat-box rojo"><div class="stat-lbl">🔴 Sin ingresar</div><div class="stat-val" id="s-rojo">—</div></div>
+  </div>
+
+  <div class="tab-btns">
+    <button class="tab-btn active" onclick="switchTab('redes')">📋 Vista por Red</button>
+    <button class="tab-btn" onclick="switchTab('ipress')">🏥 Vista por IPRESS</button>
+  </div>
+
+  <!-- Vista por RED -->
+  <div id="tab-redes" class="tab-content active">
+    <div class="card">
+      <div class="card-header">
+        <span>Estado por Red Asistencial / OPN</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="last-update" class="last-update"></span>
+          <button class="btn btn-refresh" onclick="cargarDatos()">↻ Actualizar</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="tabla-redes" class="loading">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista por IPRESS -->
+  <div id="tab-ipress" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <span>Estado por IPRESS (todas las redes)</span>
+        <input type="text" id="filtro-ipress" placeholder="Filtrar por nombre..."
+          oninput="filtrarIpress()"
+          style="padding:5px 10px;border:1px solid #c0d0e8;border-radius:4px;font-size:12px;width:200px">
+      </div>
+      <div class="card-body">
+        <div id="tabla-ipress" class="loading">Cargando...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://phybgglinjdehevtbasm.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoeWJnZ2xpbmpkZWhldnRiYXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1ODAyMzAsImV4cCI6MjA5NTE1NjIzMH0.t2J3DECjuvO8OUzIKuZ4WBi0RHBg7a9uThoPzKBGp-c';
+
+let allIpressData = [];
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('loc_sess')||'null'); } catch { return null; }
+}
+function clearSession() { localStorage.removeItem('loc_sess'); }
+function cerrarSesion() { clearSession(); window.location.href='index.html'; }
+
+async function sbGet(table, params='') {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
+    headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function calcEstado(regs, aprov) {
+  if (!regs || regs.length === 0) return 'rojo';
+  const completas = regs.filter(r => r.dni && r.orden_compra && r.prestacion && r.riesgo &&
+    (r.prod_abril > 0 || r.prod_mayo > 0 || r.prod_junio > 0)).length;
+  const enviado = regs.some(r => r.estado === 'enviado');
+  if (enviado && completas === regs.length && regs.length > 0) return 'verde';
+  if (regs.length > 0) return 'amarillo';
+  return 'rojo';
+}
+
+function semaforo(estado) {
+  const cfg = {
+    verde:    {cls:'sem-verde',   dot:'dot-v', txt:'Completo'},
+    amarillo: {cls:'sem-amarillo',dot:'dot-a', txt:'En progreso'},
+    rojo:     {cls:'sem-rojo',    dot:'dot-r', txt:'Sin ingresar'}
+  };
+  const c = cfg[estado] || cfg.rojo;
+  return `<span class="semaforo ${c.cls}"><span class="dot ${c.dot}"></span>${c.txt}</span>`;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) =>
+    b.classList.toggle('active', ['redes','ipress'][i]===tab));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+function filtrarIpress() {
+  const q = document.getElementById('filtro-ipress').value.toLowerCase();
+  const filtered = allIpressData.filter(d =>
+    d.nombre.toLowerCase().includes(q) || d.red.toLowerCase().includes(q));
+  renderIpressTable(filtered);
+}
+
+function renderIpressTable(data) {
+  if (!data.length) {
+    document.getElementById('tabla-ipress').innerHTML = '<div class="loading">Sin resultados</div>';
+    return;
+  }
+  document.getElementById('tabla-ipress').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>IPRESS</th><th>Red</th>
+        <th style="text-align:center">Aprobados</th>
+        <th style="text-align:center">Registrados</th>
+        <th style="text-align:center">Completos</th>
+        <th>Avance</th><th>Estado</th>
+        <th style="text-align:center">Envío</th>
+      </tr></thead>
+      <tbody>${data.map(d => `<tr>
+        <td><strong>${d.nombre}</strong></td>
+        <td style="font-size:11px;color:#666">${d.red}</td>
+        <td style="text-align:center">${d.aprov}</td>
+        <td style="text-align:center">${d.regs}</td>
+        <td style="text-align:center">${d.completas}</td>
+        <td><div style="display:flex;align-items:center;gap:6px">
+          <div class="progress-bar"><div class="progress-fill" style="width:${d.pct}%;
+            background:${d.pct===100?'#27ae60':d.pct>0?'#f39c12':'#e74c3c'}"></div></div>
+          <span style="font-size:11px;color:#666">${d.pct}%</span>
+        </div></td>
+        <td>${semaforo(d.estado)}</td>
+        <td style="text-align:center;font-size:11px">${d.enviado?
+          '<span style="color:#27ae60;font-weight:700">✅</span>':
+          '<span style="color:#ccc">—</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+async function cargarDatos() {
+  try {
+    const [redes, ipress_list, aprobados, registros] = await Promise.all([
+      sbGet('redes', 'select=*&order=codigo'),
+      sbGet('ipress', 'select=*&order=nombre'),
+      sbGet('locadores_aprobados', 'select=ipress_nombre,items_loca'),
+      sbGet('registros', 'select=*')
+    ]);
+
+    // Build maps
+    const aprobMap = {};
+    aprobados.forEach(a => {
+      aprobMap[a.ipress_nombre] = (aprobMap[a.ipress_nombre]||0) + (a.items_loca||0);
+    });
+    const regMap = {};
+    registros.forEach(r => {
+      if (!regMap[r.ipress_nombre]) regMap[r.ipress_nombre] = [];
+      regMap[r.ipress_nombre].push(r);
+    });
+    const ipressRedMap = {};
+    ipress_list.forEach(ip => { ipressRedMap[ip.nombre] = ip.red_codigo; });
+
+    // Per-IPRESS data
+    allIpressData = ipress_list.map(ip => {
+      const regs = regMap[ip.nombre] || [];
+      const aprov = aprobMap[ip.nombre] || 0;
+      const estado = calcEstado(regs, aprov);
+      const completas = regs.filter(r => r.dni && r.orden_compra && r.prestacion && r.riesgo).length;
+      const pct = regs.length ? Math.round(completas/regs.length*100) : 0;
+      return {nombre:ip.nombre, red:ip.red_codigo, aprov, regs:regs.length,
+        completas, pct, estado, enviado: regs.some(r=>r.estado==='enviado')};
+    });
+
+    // Stats
+    let nVerde=0, nAmarillo=0, nRojo=0;
+    allIpressData.forEach(d => {
+      if (d.estado==='verde') nVerde++;
+      else if (d.estado==='amarillo') nAmarillo++;
+      else nRojo++;
+    });
+    document.getElementById('s-redes').textContent = redes.length;
+    document.getElementById('s-ipress').textContent = ipress_list.length;
+    document.getElementById('s-verde').textContent = nVerde;
+    document.getElementById('s-amarillo').textContent = nAmarillo;
+    document.getElementById('s-rojo').textContent = nRojo;
+
+    // Vista por Red
+    const redRows = redes.map(red => {
+      const ips = allIpressData.filter(d => d.red === red.codigo);
+      const nV = ips.filter(d=>d.estado==='verde').length;
+      const nA = ips.filter(d=>d.estado==='amarillo').length;
+      const nR = ips.filter(d=>d.estado==='rojo').length;
+      const totalRegs = ips.reduce((s,d)=>s+d.regs,0);
+      const totalAprov = ips.reduce((s,d)=>s+d.aprov,0);
+      const pctRed = ips.length ? Math.round(nV/ips.length*100) : 0;
+      const estadoRed = nR===ips.length ? 'rojo' : nV===ips.length ? 'verde' : 'amarillo';
+      return `<tr>
+        <td><strong>${red.nombre}</strong></td>
+        <td style="text-align:center">${ips.length}</td>
+        <td style="text-align:center">${totalAprov}</td>
+        <td style="text-align:center">${totalRegs}</td>
+        <td style="text-align:center">
+          <span style="color:#27ae60;font-weight:700">${nV}</span> /
+          <span style="color:#d68910">${nA}</span> /
+          <span style="color:#c0392b">${nR}</span>
+        </td>
+        <td><div style="display:flex;align-items:center;gap:6px">
+          <div class="progress-bar" style="width:80px"><div class="progress-fill"
+            style="width:${pctRed}%;background:${pctRed===100?'#27ae60':pctRed>0?'#f39c12':'#e74c3c'}"></div></div>
+          <span style="font-size:11px">${pctRed}%</span>
+        </div></td>
+        <td>${semaforo(estadoRed)}</td>
+      </tr>`;
+    });
+
+    document.getElementById('tabla-redes').innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Red / OPN</th>
+          <th style="text-align:center">IPRESS</th>
+          <th style="text-align:center">Locadores<br>Aprobados</th>
+          <th style="text-align:center">Registros<br>Ingresados</th>
+          <th style="text-align:center">✅ / ⚠️ / 🔴<br>(Verde/Amarillo/Rojo)</th>
+          <th>Avance</th>
+          <th>Estado General</th>
+        </tr></thead>
+        <tbody>${redRows.join('')}</tbody>
+      </table>`;
+
+    renderIpressTable(allIpressData);
+
+    document.getElementById('last-update').textContent =
+      'Actualizado: ' + new Date().toLocaleTimeString('es-PE');
+
+  } catch(e) {
+    document.getElementById('tabla-redes').innerHTML =
+      `<div class="loading" style="color:#c0392b">Error: ${e.message}</div>`;
+  }
+}
+
+window.addEventListener('load', () => {
+  const sess = getSession();
+  if (!sess || sess.tipo !== 'nacional') { window.location.href='index.html'; return; }
+  cargarDatos();
+  setInterval(cargarDatos, 60000);
+});
+</script>
+</body>
+</html>

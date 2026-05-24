@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Panel Red – Locadores EsSalud 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f6f9;color:#1a1a1a}
+header{background:#1F4E79;color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:15px;font-weight:700}
+header p{font-size:11px;opacity:.75;margin-top:2px}
+.container{max-width:1200px;margin:20px auto;padding:0 16px}
+.card{background:#fff;border:1px solid #cfd7e6;border-radius:8px;margin-bottom:16px;overflow:hidden}
+.card-header{background:#2E75B6;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;
+  display:flex;justify-content:space-between;align-items:center}
+.card-body{padding:16px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#1F4E79;color:#fff;padding:8px 12px;text-align:left;font-weight:600}
+tbody tr{border-bottom:1px solid #eef0f5}
+tbody tr:nth-child(even){background:#fafbfd}
+tbody tr:hover{background:#f0f5fc}
+tbody td{padding:8px 12px;vertical-align:middle}
+.semaforo{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;
+  border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.sem-rojo{background:#ffebee;color:#c0392b;border:1px solid #f5c6cb}
+.sem-amarillo{background:#fff8e1;color:#d68910;border:1px solid #ffeaa0}
+.sem-verde{background:#e8f5e9;color:#1e8449;border:1px solid #a9dfbf}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot-r{background:#e74c3c}.dot-a{background:#f39c12}.dot-v{background:#27ae60}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-box{background:#f0f5fc;border:1px solid #c0d0e8;border-radius:7px;padding:14px;text-align:center}
+.stat-lbl{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.stat-val{font-size:28px;font-weight:700;color:#1F4E79}
+.stat-box.verde .stat-val{color:#1e8449}
+.stat-box.amarillo .stat-val{color:#d68910}
+.stat-box.rojo .stat-val{color:#c0392b}
+.btn{padding:7px 16px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-refresh{background:#2E75B6;color:#fff}.btn-refresh:hover{background:#1F4E79}
+.btn-logout{background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px}
+.legend{display:flex;gap:16px;font-size:11px;margin-bottom:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px}
+.progress-bar{background:#e0e0e0;border-radius:10px;height:8px;overflow:hidden;min-width:80px}
+.progress-fill{height:100%;border-radius:10px;transition:width .3s}
+.loading{text-align:center;padding:40px;color:#999;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>📊 Panel de Seguimiento – Red Asistencial</h1>
+    <p id="hdr-red">EsSalud | Locadores II Trimestre 2026</p>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span id="hdr-badge" style="font-size:12px;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:4px"></span>
+    <button class="btn-logout" onclick="cerrarSesion()">✕ Salir</button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Resumen -->
+  <div class="stat-row" id="stats-row">
+    <div class="stat-box"><div class="stat-lbl">Total IPRESS</div><div class="stat-val" id="s-total">—</div></div>
+    <div class="stat-box verde"><div class="stat-lbl">✅ Completas</div><div class="stat-val" id="s-verde">—</div></div>
+    <div class="stat-box amarillo"><div class="stat-lbl">⚠️ Parciales</div><div class="stat-val" id="s-amarillo">—</div></div>
+    <div class="stat-box rojo"><div class="stat-lbl">🔴 Sin ingresar</div><div class="stat-val" id="s-rojo">—</div></div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card">
+    <div class="card-header">
+      <span>Estado de registro por IPRESS</span>
+      <button class="btn btn-refresh" onclick="cargarDatos()">↻ Actualizar</button>
+    </div>
+    <div class="card-body">
+      <div class="legend">
+        <div class="legend-item"><span class="dot dot-v"></span> Verde: todos los campos completos y enviado</div>
+        <div class="legend-item"><span class="dot dot-a"></span> Amarillo: hay registros pero faltan campos</div>
+        <div class="legend-item"><span class="dot dot-r"></span> Rojo: no ha ingresado información</div>
+      </div>
+      <div id="tabla-container" class="loading">Cargando datos...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://phybgglinjdehevtbasm.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoeWJnZ2xpbmpkZWhldnRiYXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1ODAyMzAsImV4cCI6MjA5NTE1NjIzMH0.t2J3DECjuvO8OUzIKuZ4WBi0RHBg7a9uThoPzKBGp-c';
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('loc_sess')||'null'); } catch { return null; }
+}
+function clearSession() { localStorage.removeItem('loc_sess'); }
+function cerrarSesion() { clearSession(); window.location.href='index.html'; }
+
+async function sbGet(table, params='') {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
+    headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function calcEstado(registros, aprobados) {
+  if (!registros || registros.length === 0) return 'rojo';
+  // Check if all required fields are complete
+  const completas = registros.filter(r =>
+    r.dni && r.orden_compra && r.prestacion && r.riesgo &&
+    (r.prod_abril > 0 || r.prod_mayo > 0 || r.prod_junio > 0)
+  ).length;
+  const enviado = registros.some(r => r.estado === 'enviado');
+  if (enviado && completas === registros.length) return 'verde';
+  if (completas > 0 || registros.length > 0) return 'amarillo';
+  return 'rojo';
+}
+
+function semaforo(estado) {
+  const cfg = {
+    verde:    {cls:'sem-verde',   dot:'dot-v', txt:'Completo'},
+    amarillo: {cls:'sem-amarillo',dot:'dot-a', txt:'En progreso'},
+    rojo:     {cls:'sem-rojo',    dot:'dot-r', txt:'Sin ingresar'}
+  };
+  const c = cfg[estado] || cfg.rojo;
+  return `<span class="semaforo ${c.cls}"><span class="dot ${c.dot}"></span>${c.txt}</span>`;
+}
+
+async function cargarDatos() {
+  const sess = getSession();
+  if (!sess || sess.tipo !== 'red') { cerrarSesion(); return; }
+
+  document.getElementById('hdr-red').textContent = sess.nombre + ' | Locadores II Trimestre 2026';
+  document.getElementById('hdr-badge').textContent = sess.red;
+  document.getElementById('tabla-container').innerHTML = '<div class="loading">Cargando...</div>';
+
+  try {
+    // Get all IPRESS for this red
+    const ipress_list = await sbGet('ipress', `red_codigo=eq.${encodeURIComponent(sess.red)}&select=*&order=nombre`);
+    // Get all approved locadores counts per IPRESS
+    const aprobados = await sbGet('locadores_aprobados',
+      `red_codigo=eq.${encodeURIComponent(sess.red)}&select=ipress_nombre,items_loca`);
+    // Get all registros for this red
+    const registros = await sbGet('registros',
+      `red_codigo=eq.${encodeURIComponent(sess.red)}&select=*`);
+
+    // Group
+    const aprobMap = {};
+    aprobados.forEach(a => {
+      aprobMap[a.ipress_nombre] = (aprobMap[a.ipress_nombre]||0) + (a.items_loca||0);
+    });
+    const regMap = {};
+    registros.forEach(r => {
+      if (!regMap[r.ipress_nombre]) regMap[r.ipress_nombre] = [];
+      regMap[r.ipress_nombre].push(r);
+    });
+
+    // Stats
+    let nVerde=0, nAmarillo=0, nRojo=0;
+    const rows = ipress_list.map(ip => {
+      const regs = regMap[ip.nombre] || [];
+      const aprov = aprobMap[ip.nombre] || 0;
+      const estado = calcEstado(regs, aprov);
+      if (estado==='verde') nVerde++;
+      else if (estado==='amarillo') nAmarillo++;
+      else nRojo++;
+
+      const completas = regs.filter(r =>
+        r.dni && r.orden_compra && r.prestacion && r.riesgo).length;
+      const pct = regs.length ? Math.round(completas/regs.length*100) : 0;
+      const enviado = regs.some(r => r.estado==='enviado');
+
+      return `<tr>
+        <td><strong>${ip.nombre}</strong></td>
+        <td style="text-align:center">${aprov}</td>
+        <td style="text-align:center">${regs.length}</td>
+        <td style="text-align:center">${completas}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="progress-bar" style="width:80px">
+              <div class="progress-fill" style="width:${pct}%;background:${pct===100?'#27ae60':pct>0?'#f39c12':'#e74c3c'}"></div>
+            </div>
+            <span style="font-size:11px;color:#666">${pct}%</span>
+          </div>
+        </td>
+        <td>${semaforo(estado)}</td>
+        <td style="text-align:center;font-size:11px">${enviado?'<span style="color:#27ae60;font-weight:700">✅ Enviado</span>':'<span style="color:#999">Borrador</span>'}</td>
+        <td style="font-size:11px;color:#666">${regs.length?new Date(Math.max(...regs.map(r=>new Date(r.updated_at)))).toLocaleString('es-PE'):'—'}</td>
+      </tr>`;
+    });
+
+    document.getElementById('s-total').textContent = ipress_list.length;
+    document.getElementById('s-verde').textContent = nVerde;
+    document.getElementById('s-amarillo').textContent = nAmarillo;
+    document.getElementById('s-rojo').textContent = nRojo;
+
+    document.getElementById('tabla-container').innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>IPRESS</th>
+            <th style="text-align:center">Aprobados<br>GOPEE</th>
+            <th style="text-align:center">Registrados</th>
+            <th style="text-align:center">Completos</th>
+            <th>Avance</th>
+            <th>Estado</th>
+            <th style="text-align:center">Envío</th>
+            <th>Último ingreso</th>
+          </tr>
+        </thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>`;
+
+  } catch(e) {
+    document.getElementById('tabla-container').innerHTML =
+      `<div class="loading" style="color:#c0392b">Error: ${e.message}</div>`;
+  }
+}
+
+// Auto-refresh every 60 seconds
+window.addEventListener('load', () => {
+  const sess = getSession();
+  if (!sess || sess.tipo !== 'red') { window.location.href='index.html'; return; }
+  cargarDatos();
+  setInterval(cargarDatos, 60000);
+});
+</script>
+</body>
+</html>
