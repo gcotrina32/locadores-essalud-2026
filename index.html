@@ -300,32 +300,51 @@ async function doLogin() {
   const clave = document.getElementById('login-clave').value.trim();
   if (!clave) { toast('Ingrese su clave de acceso', true); return; }
   document.getElementById('login-err').style.display = 'none';
+
+  // Check Nacional FIRST (no DB call needed)
+  if (clave === 'GCOP-GFPS-NACIONAL-2026') {
+    setSession({tipo:'nacional', clave});
+    window.location.href = 'panel-nacional.html';
+    return;
+  }
+
+  // Show loading
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = 'Verificando...';
+  btn.disabled = true;
+
   try {
-    // Check IPRESS first
-    let rows = await sbGet('ipress', `clave=eq.${encodeURIComponent(clave)}&select=*`);
-    if (rows.length > 0) {
-      const ip = rows[0];
-      setSession({tipo:'ipress', red: ip.red_codigo, ipress: ip.nombre, clave});
-      iniciarFormulario(ip.red_codigo, ip.nombre);
-      return;
+    // Check Red (claves tipo RED-XXXX-2026)
+    if (clave.startsWith('RED-')) {
+      const rows = await sbGet('redes', `clave=eq.${encodeURIComponent(clave)}&select=*`);
+      if (rows.length > 0) {
+        const red = rows[0];
+        setSession({tipo:'red', red: red.codigo, nombre: red.nombre, clave});
+        window.location.href = 'panel-red.html';
+        return;
+      }
     }
-    // Check Red
-    rows = await sbGet('redes', `clave=eq.${encodeURIComponent(clave)}&select=*`);
-    if (rows.length > 0) {
-      const red = rows[0];
-      setSession({tipo:'red', red: red.codigo, nombre: red.nombre, clave});
-      window.location.href = 'panel-red.html';
-      return;
+
+    // Check IPRESS (claves tipo IP-XXXX-2026)
+    if (clave.startsWith('IP-')) {
+      const rows = await sbGet('ipress', `clave=eq.${encodeURIComponent(clave)}&select=*`);
+      if (rows.length > 0) {
+        const ip = rows[0];
+        setSession({tipo:'ipress', red: ip.red_codigo, ipress: ip.nombre, clave});
+        iniciarFormulario(ip.red_codigo, ip.nombre);
+        return;
+      }
     }
-    // Check Nacional
-    if (clave === 'GCOP-GFPS-NACIONAL-2026') {
-      setSession({tipo:'nacional', clave});
-      window.location.href = 'panel-nacional.html';
-      return;
-    }
+
+    // If neither matched
     document.getElementById('login-err').style.display = 'block';
   } catch(e) {
-    toast('Error de conexión: ' + e.message, true);
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('login-err').textContent = 'Error de conexión. Verifique su internet e intente nuevamente.';
+    console.error('Login error:', e);
+  } finally {
+    btn.textContent = '🔒 Ingresar';
+    btn.disabled = false;
   }
 }
 
