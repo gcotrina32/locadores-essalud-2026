@@ -11,7 +11,7 @@ header{background:#1F4E79;color:#fff;padding:14px 24px}
 .container{max-width:1400px;margin:20px auto;padding:0 16px}
 .card{background:#fff;border:1px solid #cfd7e6;border-radius:8px;margin-bottom:16px;overflow:hidden}
 .card-header{background:#2E75B6;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;
-  display:flex;justify-content:space-between;align-items:center}
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .card-body{padding:16px}
 .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
 .stat-box{background:#f0f5fc;border:1px solid #c0d0e8;border-radius:7px;padding:14px;text-align:center}
@@ -21,11 +21,17 @@ header{background:#1F4E79;color:#fff;padding:14px 24px}
 .stat-box.amarillo .stat-val{color:#d68910}
 .stat-box.rojo .stat-val{color:#c0392b}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{background:#1F4E79;color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap}
-tbody tr{border-bottom:1px solid #eef0f5;cursor:pointer}
+thead th{background:#1F4E79;color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:2}
+tbody tr{border-bottom:1px solid #eef0f5}
 tbody tr:nth-child(even){background:#fafbfd}
 tbody tr:hover{background:#e8f0fb}
 tbody td{padding:7px 10px;vertical-align:middle}
+.tr-red{cursor:pointer;background:#eef4fb!important}
+.tr-red:hover{background:#dce9f7!important}
+.tr-red td{font-weight:700;font-size:12px}
+.tr-ipress-sub{display:none;background:#f9fbff!important}
+.tr-ipress-sub td{font-size:11px;padding:5px 10px 5px 28px}
+.tr-ipress-sub.visible{display:table-row}
 .semaforo{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
   border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
 .sem-rojo{background:#ffebee;color:#c0392b;border:1px solid #f5c6cb}
@@ -35,31 +41,38 @@ tbody td{padding:7px 10px;vertical-align:middle}
 .dot-r{background:#e74c3c}.dot-a{background:#f39c12}.dot-v{background:#27ae60}
 .progress-bar{background:#e0e0e0;border-radius:10px;height:7px;overflow:hidden;min-width:60px}
 .progress-fill{height:100%;border-radius:10px}
-.btn{padding:7px 16px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn{padding:7px 14px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 .btn-refresh{background:#2E75B6;color:#fff}.btn-refresh:hover{background:#1F4E79}
+.btn-dl{background:#1e8449;color:#fff}.btn-dl:hover{background:#145a32}
+.btn-dl-sm{background:#1F6E43;color:#fff;padding:3px 8px;font-size:11px;border-radius:4px;border:none;cursor:pointer;white-space:nowrap}
 .btn-logout{background:rgba(255,255,255,.2);border:none;color:#fff;
   padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px}
-.detail-panel{display:none;background:#f9fbff;border:1px solid #c0d0e8;
-  border-radius:8px;margin-top:12px;padding:14px}
-.detail-panel.open{display:block}
-.detail-table td,.detail-table th{padding:5px 8px;font-size:11px}
-.tab-btns{display:flex;gap:8px;margin-bottom:16px}
+.tab-btns{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
 .tab-btn{padding:8px 16px;border:1px solid #c0d0e8;border-radius:6px;background:#fff;
   cursor:pointer;font-size:12px;font-weight:600;color:#555}
 .tab-btn.active{background:#1F4E79;color:#fff;border-color:#1F4E79}
 .tab-content{display:none}.tab-content.active{display:block}
 .loading{text-align:center;padding:40px;color:#999;font-size:14px}
-.last-update{font-size:11px;color:#aaa;text-align:right;margin-bottom:8px}
+.last-update{font-size:11px;color:#aaa}
+.filtros{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.filtros select,.filtros input{padding:6px 10px;border:1px solid #c0d0e8;border-radius:5px;font-size:12px}
+.expand-icon{display:inline-block;transition:transform .2s;margin-right:6px;font-size:10px}
+.expanded .expand-icon{transform:rotate(90deg)}
+.dl-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tbl-wrap{overflow-x:auto;max-height:600px;overflow-y:auto}
 </style>
 </head>
 <body>
 <header>
-  <div style="display:flex;justify-content:space-between;align-items:center">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
     <div>
       <h1 style="font-size:15px;font-weight:700">🗺️ Panel Nacional GCOP-GFPS — Seguimiento de Locadores</h1>
       <p style="font-size:11px;opacity:.75;margin-top:2px">EsSalud | II Trimestre 2026 | Actualización automática cada 60s</p>
     </div>
-    <button class="btn-logout" onclick="cerrarSesion()">✕ Salir</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-dl" onclick="descargarNacional()">⬇ Descargar TODO</button>
+      <button class="btn-logout" onclick="cerrarSesion()">✕ Salir</button>
+    </div>
   </div>
 </header>
 
@@ -82,14 +95,26 @@ tbody td{padding:7px 10px;vertical-align:middle}
   <div id="tab-redes" class="tab-content active">
     <div class="card">
       <div class="card-header">
-        <span>Estado por Red Asistencial / OPN</span>
-        <div style="display:flex;gap:8px;align-items:center">
+        <span>Estado por Red Asistencial / OPN <span style="font-weight:400;font-size:11px;opacity:.8">(clic en fila para expandir IPRESS)</span></span>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <span id="last-update" class="last-update"></span>
           <button class="btn btn-refresh" onclick="cargarDatos()">↻ Actualizar</button>
         </div>
       </div>
       <div class="card-body">
-        <div id="tabla-redes" class="loading">Cargando...</div>
+        <!-- Filtro estado -->
+        <div class="filtros">
+          <label style="font-size:11px;font-weight:700;color:#555">Filtrar por estado:</label>
+          <select id="filtro-estado-red" onchange="aplicarFiltroRed()">
+            <option value="">Todos</option>
+            <option value="verde">✅ Completas</option>
+            <option value="amarillo">⚠️ En progreso</option>
+            <option value="rojo">🔴 Sin ingresar</option>
+          </select>
+        </div>
+        <div class="tbl-wrap">
+          <div id="tabla-redes" class="loading">Cargando...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -99,12 +124,26 @@ tbody td{padding:7px 10px;vertical-align:middle}
     <div class="card">
       <div class="card-header">
         <span>Estado por IPRESS (todas las redes)</span>
-        <input type="text" id="filtro-ipress" placeholder="Filtrar por nombre..."
-          oninput="filtrarIpress()"
-          style="padding:5px 10px;border:1px solid #c0d0e8;border-radius:4px;font-size:12px;width:200px">
+        <div class="dl-group">
+          <button class="btn btn-dl" onclick="descargarIpressFiltradas()">⬇ Descargar vista actual</button>
+        </div>
       </div>
       <div class="card-body">
-        <div id="tabla-ipress" class="loading">Cargando...</div>
+        <div class="filtros">
+          <input type="text" id="filtro-ipress" placeholder="🔍 Buscar IPRESS o Red..." oninput="filtrarIpress()" style="width:220px">
+          <select id="filtro-estado-ip" onchange="filtrarIpress()">
+            <option value="">Todos los estados</option>
+            <option value="verde">✅ Completas</option>
+            <option value="amarillo">⚠️ En progreso</option>
+            <option value="rojo">🔴 Sin ingresar</option>
+          </select>
+          <select id="filtro-red-ip" onchange="filtrarIpress()">
+            <option value="">Todas las Redes</option>
+          </select>
+        </div>
+        <div class="tbl-wrap">
+          <div id="tabla-ipress" class="loading">Cargando...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -115,61 +154,215 @@ const SB_URL = 'https://phybgglinjdehevtbasm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoeWJnZ2xpbmpkZWhldnRiYXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1ODAyMzAsImV4cCI6MjA5NTE1NjIzMH0.t2J3DECjuvO8OUzIKuZ4WBi0RHBg7a9uThoPzKBGp-c';
 
 let allIpressData = [];
+let allRegistros  = [];
+let allRedes      = [];
+let expandedReds  = new Set();
 
-function getSession() {
-  try { return JSON.parse(localStorage.getItem('loc_sess')||'null'); } catch { return null; }
-}
-function clearSession() { localStorage.removeItem('loc_sess'); }
-function cerrarSesion() { clearSession(); window.location.href='index.html'; }
+function getSession(){try{return JSON.parse(localStorage.getItem('loc_sess')||'null');}catch{return null;}}
+function clearSession(){localStorage.removeItem('loc_sess');}
+function cerrarSesion(){clearSession();window.location.href='index.html';}
 
-async function sbGet(table, params='') {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
-    headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+async function sbGet(table,params=''){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?${params}`,{
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
   });
-  if (!r.ok) throw new Error(await r.text());
+  if(!r.ok) throw new Error(await r.text());
   return r.json();
 }
 
-function calcEstado(regs, aprov) {
-  if (!regs || regs.length === 0) return 'rojo';
-  const completas = regs.filter(r => r.dni && r.orden_compra && r.prestacion && r.riesgo &&
-    (r.prod_abril > 0 || r.prod_mayo > 0 || r.prod_junio > 0)).length;
-  const enviado = regs.some(r => r.estado === 'enviado');
-  if (enviado && completas === regs.length && regs.length > 0) return 'verde';
-  if (regs.length > 0) return 'amarillo';
+function calcEstado(regs){
+  if(!regs||regs.length===0) return 'rojo';
+  const completas=regs.filter(r=>r.dni&&r.orden_compra&&r.prestacion&&r.riesgo).length;
+  const enviado=regs.some(r=>r.estado==='enviado');
+  if(enviado&&completas===regs.length&&regs.length>0) return 'verde';
+  if(regs.length>0) return 'amarillo';
   return 'rojo';
 }
 
-function semaforo(estado) {
-  const cfg = {
-    verde:    {cls:'sem-verde',   dot:'dot-v', txt:'Completo'},
-    amarillo: {cls:'sem-amarillo',dot:'dot-a', txt:'En progreso'},
-    rojo:     {cls:'sem-rojo',    dot:'dot-r', txt:'Sin ingresar'}
+function semaforo(estado){
+  const cfg={
+    verde:{cls:'sem-verde',dot:'dot-v',txt:'Completo'},
+    amarillo:{cls:'sem-amarillo',dot:'dot-a',txt:'En progreso'},
+    rojo:{cls:'sem-rojo',dot:'dot-r',txt:'Sin ingresar'}
   };
-  const c = cfg[estado] || cfg.rojo;
+  const c=cfg[estado]||cfg.rojo;
   return `<span class="semaforo ${c.cls}"><span class="dot ${c.dot}"></span>${c.txt}</span>`;
 }
 
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) =>
-    b.classList.toggle('active', ['redes','ipress'][i]===tab));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>
+    b.classList.toggle('active',['redes','ipress'][i]===tab));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
 }
 
-function filtrarIpress() {
-  const q = document.getElementById('filtro-ipress').value.toLowerCase();
-  const filtered = allIpressData.filter(d =>
-    d.nombre.toLowerCase().includes(q) || d.red.toLowerCase().includes(q));
+/* ══ DESCARGA CSV ══ */
+function csvEsc(v){const s=String(v==null?'':v);return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
+
+function buildCsvFromRegistros(regs, titulo){
+  const header=['Red','IPRESS','Grupo Ocupacional','Especialidad','DNI/CE','N° Pedido',
+    'Prestación Afectada','Prod. Abril','Prod. Mayo','Prod. Junio','Riesgo/Consecuencia','Estado','Último ingreso'];
+  const rows=regs.map(r=>[
+    r.red_codigo,r.ipress_nombre,r.grupo_ocupacional,r.especialidad||'',
+    r.dni||'',r.orden_compra||'',r.prestacion||'',
+    r.prod_abril||0,r.prod_mayo||0,r.prod_junio||0,
+    r.riesgo||'',r.estado||'',
+    r.updated_at?new Date(r.updated_at).toLocaleString('es-PE'):''
+  ]);
+  const csv=[header,...rows].map(r=>r.map(csvEsc).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=titulo+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function descargarNacional(){
+  if(!allRegistros.length){alert('No hay datos cargados aún.');return;}
+  buildCsvFromRegistros(allRegistros,'Consolidado_Nacional_Locadores_2026');
+}
+
+function descargarPorRed(redCodigo){
+  const regs=allRegistros.filter(r=>r.red_codigo===redCodigo);
+  if(!regs.length){alert('Sin registros para esta Red.');return;}
+  buildCsvFromRegistros(regs,'Consolidado_Red_'+redCodigo.replace(/\s/g,'_')+'_2026');
+}
+
+function descargarPorIpress(ipressNombre){
+  const regs=allRegistros.filter(r=>r.ipress_nombre===ipressNombre);
+  if(!regs.length){alert('Sin registros para esta IPRESS.');return;}
+  buildCsvFromRegistros(regs,'Registros_'+ipressNombre.replace(/\s/g,'_').slice(0,40)+'_2026');
+}
+
+function descargarIpressFiltradas(){
+  const q=(document.getElementById('filtro-ipress').value||'').toLowerCase();
+  const estado=document.getElementById('filtro-estado-ip').value;
+  const red=document.getElementById('filtro-red-ip').value;
+  let filtered=allIpressData.filter(d=>{
+    const matchQ=!q||d.nombre.toLowerCase().includes(q)||d.red.toLowerCase().includes(q);
+    const matchE=!estado||d.estado===estado;
+    const matchR=!red||d.red===red;
+    return matchQ&&matchE&&matchR;
+  });
+  const nombres=new Set(filtered.map(d=>d.nombre));
+  const regs=allRegistros.filter(r=>nombres.has(r.ipress_nombre));
+  if(!regs.length){alert('Sin registros para la selección actual.');return;}
+  buildCsvFromRegistros(regs,'Consolidado_Filtrado_2026');
+}
+
+/* ══ RENDER TABLA REDES con expandibles ══ */
+function renderTablaRedes(redasData){
+  const filtro=document.getElementById('filtro-estado-red').value;
+  const filtered=filtro?redasData.filter(r=>r.estado===filtro):redasData;
+
+  if(!filtered.length){
+    document.getElementById('tabla-redes').innerHTML='<div class="loading">Sin resultados</div>';
+    return;
+  }
+
+  const rowsHtml=filtered.map(red=>{
+    const isExp=expandedReds.has(red.codigo);
+    const subRows=red.ipress.map(ip=>`
+      <tr class="tr-ipress-sub${isExp?' visible':''}" data-parent="${red.codigo}">
+        <td style="padding-left:28px">↳ ${ip.nombre}</td>
+        <td style="text-align:center">${ip.aprov}</td>
+        <td style="text-align:center">${ip.regs}</td>
+        <td style="text-align:center">${ip.completas}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="progress-bar" style="min-width:50px">
+              <div class="progress-fill" style="width:${ip.pct}%;background:${ip.pct===100?'#27ae60':ip.pct>0?'#f39c12':'#e74c3c'}"></div>
+            </div>
+            <span style="font-size:11px;color:#666">${ip.pct}%</span>
+          </div>
+        </td>
+        <td>${semaforo(ip.estado)}</td>
+        <td style="text-align:center">${ip.enviado?'<span style="color:#27ae60;font-weight:700">✅</span>':'<span style="color:#ccc">—</span>'}</td>
+        <td>
+          <button class="btn-dl-sm" onclick="event.stopPropagation();descargarPorIpress('${ip.nombre.replace(/'/g,"\\'")}')">⬇ CSV</button>
+        </td>
+      </tr>`).join('');
+
+    return `
+      <tr class="tr-red${isExp?' expanded':''}" onclick="toggleRed('${red.codigo}')">
+        <td><span class="expand-icon">▶</span>${red.nombre}</td>
+        <td style="text-align:center">${red.ipress.length}</td>
+        <td style="text-align:center">${red.totalAprov}</td>
+        <td style="text-align:center">${red.totalRegs}</td>
+        <td style="text-align:center">
+          <span style="color:#1e8449;font-weight:700">${red.nV}</span> /
+          <span style="color:#d68910;font-weight:700">${red.nA}</span> /
+          <span style="color:#c0392b;font-weight:700">${red.nR}</span>
+        </td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="progress-bar" style="min-width:70px">
+              <div class="progress-fill" style="width:${red.pct}%;background:${red.pct===100?'#27ae60':red.pct>0?'#f39c12':'#e74c3c'}"></div>
+            </div>
+            <span style="font-size:11px">${red.pct}%</span>
+          </div>
+        </td>
+        <td>${semaforo(red.estado)}</td>
+        <td>
+          <button class="btn-dl-sm" onclick="event.stopPropagation();descargarPorRed('${red.codigo.replace(/'/g,"\\'")}')">⬇ CSV</button>
+        </td>
+      </tr>
+      ${subRows}`;
+  }).join('');
+
+  document.getElementById('tabla-redes').innerHTML=`
+    <table>
+      <thead><tr>
+        <th>Red / OPN</th>
+        <th style="text-align:center">IPRESS</th>
+        <th style="text-align:center">Locadores<br>Aprobados</th>
+        <th style="text-align:center">Registros<br>Ingresados</th>
+        <th style="text-align:center">✅ / ⚠️ / 🔴</th>
+        <th>Avance</th>
+        <th>Estado General</th>
+        <th style="text-align:center">Descargar</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+}
+
+function toggleRed(codigo){
+  if(expandedReds.has(codigo)) expandedReds.delete(codigo);
+  else expandedReds.add(codigo);
+  // toggle visible rows
+  document.querySelectorAll(`tr[data-parent="${codigo}"]`).forEach(tr=>tr.classList.toggle('visible'));
+  // toggle expand icon
+  document.querySelectorAll('.tr-red').forEach(tr=>{
+    if(tr.onclick&&tr.getAttribute('onclick')&&tr.getAttribute('onclick').includes(`'${codigo}'`)){
+      tr.classList.toggle('expanded',expandedReds.has(codigo));
+    }
+  });
+}
+
+function aplicarFiltroRed(){
+  renderTablaRedes(window._redesData||[]);
+}
+
+/* ══ RENDER TABLA IPRESS ══ */
+function filtrarIpress(){
+  const q=(document.getElementById('filtro-ipress').value||'').toLowerCase();
+  const estado=document.getElementById('filtro-estado-ip').value;
+  const red=document.getElementById('filtro-red-ip').value;
+  const filtered=allIpressData.filter(d=>{
+    const matchQ=!q||d.nombre.toLowerCase().includes(q)||d.red.toLowerCase().includes(q);
+    const matchE=!estado||d.estado===estado;
+    const matchR=!red||d.red===red;
+    return matchQ&&matchE&&matchR;
+  });
   renderIpressTable(filtered);
 }
 
-function renderIpressTable(data) {
-  if (!data.length) {
-    document.getElementById('tabla-ipress').innerHTML = '<div class="loading">Sin resultados</div>';
+function renderIpressTable(data){
+  if(!data.length){
+    document.getElementById('tabla-ipress').innerHTML='<div class="loading">Sin resultados</div>';
     return;
   }
-  document.getElementById('tabla-ipress').innerHTML = `
+  document.getElementById('tabla-ipress').innerHTML=`
     <table>
       <thead><tr>
         <th>IPRESS</th><th>Red</th>
@@ -178,8 +371,9 @@ function renderIpressTable(data) {
         <th style="text-align:center">Completos</th>
         <th>Avance</th><th>Estado</th>
         <th style="text-align:center">Envío</th>
+        <th style="text-align:center">Descargar</th>
       </tr></thead>
-      <tbody>${data.map(d => `<tr>
+      <tbody>${data.map(d=>`<tr>
         <td><strong>${d.nombre}</strong></td>
         <td style="font-size:11px;color:#666">${d.red}</td>
         <td style="text-align:center">${d.aprov}</td>
@@ -191,118 +385,100 @@ function renderIpressTable(data) {
           <span style="font-size:11px;color:#666">${d.pct}%</span>
         </div></td>
         <td>${semaforo(d.estado)}</td>
-        <td style="text-align:center;font-size:11px">${d.enviado?
+        <td style="text-align:center">${d.enviado?
           '<span style="color:#27ae60;font-weight:700">✅</span>':
           '<span style="color:#ccc">—</span>'}</td>
+        <td style="text-align:center">
+          <button class="btn-dl-sm" onclick="descargarPorIpress('${d.nombre.replace(/'/g,"\\'")}')">⬇ CSV</button>
+        </td>
       </tr>`).join('')}</tbody>
     </table>`;
 }
 
-async function cargarDatos() {
-  try {
-    const [redes, ipress_list, aprobados, registros] = await Promise.all([
-      sbGet('redes', 'select=*&order=codigo'),
-      sbGet('ipress', 'select=*&order=nombre'),
-      sbGet('locadores_aprobados', 'select=ipress_nombre,items_loca'),
-      sbGet('registros', 'select=*')
+/* ══ CARGA DATOS ══ */
+async function cargarDatos(){
+  try{
+    document.getElementById('tabla-redes').innerHTML='<div class="loading">Cargando...</div>';
+
+    const [redes,ipress_list,registros]=await Promise.all([
+      sbGet('redes','select=*&order=nombre'),
+      sbGet('ipress','select=*&order=nombre'),
+      sbGet('registros','select=*&limit=50000')
     ]);
 
+    allRedes=redes;
+    allRegistros=registros;
+
+    // locadores aprobados desde LOCADORES en index (usamos conteo de la tabla ipress si existe, si no 0)
     // Build maps
-    const aprobMap = {};
-    aprobados.forEach(a => {
-      aprobMap[a.ipress_nombre] = (aprobMap[a.ipress_nombre]||0) + (a.items_loca||0);
-    });
-    const regMap = {};
-    registros.forEach(r => {
-      if (!regMap[r.ipress_nombre]) regMap[r.ipress_nombre] = [];
+    const regMap={};
+    registros.forEach(r=>{
+      if(!regMap[r.ipress_nombre]) regMap[r.ipress_nombre]=[];
       regMap[r.ipress_nombre].push(r);
     });
-    const ipressRedMap = {};
-    ipress_list.forEach(ip => { ipressRedMap[ip.nombre] = ip.red_codigo; });
 
-    // Per-IPRESS data
-    allIpressData = ipress_list.map(ip => {
-      const regs = regMap[ip.nombre] || [];
-      const aprov = aprobMap[ip.nombre] || 0;
-      const estado = calcEstado(regs, aprov);
-      const completas = regs.filter(r => r.dni && r.orden_compra && r.prestacion && r.riesgo).length;
-      const pct = regs.length ? Math.round(completas/regs.length*100) : 0;
-      return {nombre:ip.nombre, red:ip.red_codigo, aprov, regs:regs.length,
-        completas, pct, estado, enviado: regs.some(r=>r.estado==='enviado')};
+    // Per-IPRESS
+    allIpressData=ipress_list.map(ip=>{
+      const regs=regMap[ip.nombre]||[];
+      const estado=calcEstado(regs);
+      const completas=regs.filter(r=>r.dni&&r.orden_compra&&r.prestacion&&r.riesgo).length;
+      const aprov=ip.locadores_count||0;
+      const pct=regs.length?Math.round(completas/regs.length*100):0;
+      return{nombre:ip.nombre,red:ip.red_codigo,aprov,regs:regs.length,
+        completas,pct,estado,enviado:regs.some(r=>r.estado==='enviado')};
     });
 
     // Stats
-    let nVerde=0, nAmarillo=0, nRojo=0;
-    allIpressData.forEach(d => {
-      if (d.estado==='verde') nVerde++;
-      else if (d.estado==='amarillo') nAmarillo++;
-      else nRojo++;
+    let nV=0,nA=0,nR=0;
+    allIpressData.forEach(d=>{
+      if(d.estado==='verde') nV++;
+      else if(d.estado==='amarillo') nA++;
+      else nR++;
     });
-    document.getElementById('s-redes').textContent = redes.length;
-    document.getElementById('s-ipress').textContent = ipress_list.length;
-    document.getElementById('s-verde').textContent = nVerde;
-    document.getElementById('s-amarillo').textContent = nAmarillo;
-    document.getElementById('s-rojo').textContent = nRojo;
+    document.getElementById('s-redes').textContent=redes.length;
+    document.getElementById('s-ipress').textContent=ipress_list.length;
+    document.getElementById('s-verde').textContent=nV;
+    document.getElementById('s-amarillo').textContent=nA;
+    document.getElementById('s-rojo').textContent=nR;
 
-    // Vista por Red
-    const redRows = redes.map(red => {
-      const ips = allIpressData.filter(d => d.red === red.codigo);
-      const nV = ips.filter(d=>d.estado==='verde').length;
-      const nA = ips.filter(d=>d.estado==='amarillo').length;
-      const nR = ips.filter(d=>d.estado==='rojo').length;
-      const totalRegs = ips.reduce((s,d)=>s+d.regs,0);
-      const totalAprov = ips.reduce((s,d)=>s+d.aprov,0);
-      const pctRed = ips.length ? Math.round(nV/ips.length*100) : 0;
-      const estadoRed = nR===ips.length ? 'rojo' : nV===ips.length ? 'verde' : 'amarillo';
-      return `<tr>
-        <td><strong>${red.nombre}</strong></td>
-        <td style="text-align:center">${ips.length}</td>
-        <td style="text-align:center">${totalAprov}</td>
-        <td style="text-align:center">${totalRegs}</td>
-        <td style="text-align:center">
-          <span style="color:#27ae60;font-weight:700">${nV}</span> /
-          <span style="color:#d68910">${nA}</span> /
-          <span style="color:#c0392b">${nR}</span>
-        </td>
-        <td><div style="display:flex;align-items:center;gap:6px">
-          <div class="progress-bar" style="width:80px"><div class="progress-fill"
-            style="width:${pctRed}%;background:${pctRed===100?'#27ae60':pctRed>0?'#f39c12':'#e74c3c'}"></div></div>
-          <span style="font-size:11px">${pctRed}%</span>
-        </div></td>
-        <td>${semaforo(estadoRed)}</td>
-      </tr>`;
+    // Poblar filtro Red en vista IPRESS
+    const selRed=document.getElementById('filtro-red-ip');
+    const redOpts=[...new Set(allIpressData.map(d=>d.red))].sort();
+    selRed.innerHTML='<option value="">Todas las Redes</option>'+
+      redOpts.map(r=>`<option value="${r}">${r}</option>`).join('');
+
+    // Per-Red data
+    const redesData=redes.map(red=>{
+      const ips=allIpressData.filter(d=>d.red===red.codigo);
+      const nV2=ips.filter(d=>d.estado==='verde').length;
+      const nA2=ips.filter(d=>d.estado==='amarillo').length;
+      const nR2=ips.filter(d=>d.estado==='rojo').length;
+      const totalRegs=ips.reduce((s,d)=>s+d.regs,0);
+      const totalAprov=ips.reduce((s,d)=>s+d.aprov,0);
+      const pct=ips.length?Math.round(nV2/ips.length*100):0;
+      const estado=nR2===ips.length?'rojo':nV2===ips.length?'verde':'amarillo';
+      return{codigo:red.codigo,nombre:red.nombre,ipress:ips,
+        nV:nV2,nA:nA2,nR:nR2,totalRegs,totalAprov,pct,estado};
     });
+    window._redesData=redesData;
 
-    document.getElementById('tabla-redes').innerHTML = `
-      <table>
-        <thead><tr>
-          <th>Red / OPN</th>
-          <th style="text-align:center">IPRESS</th>
-          <th style="text-align:center">Locadores<br>Aprobados</th>
-          <th style="text-align:center">Registros<br>Ingresados</th>
-          <th style="text-align:center">✅ / ⚠️ / 🔴<br>(Verde/Amarillo/Rojo)</th>
-          <th>Avance</th>
-          <th>Estado General</th>
-        </tr></thead>
-        <tbody>${redRows.join('')}</tbody>
-      </table>`;
-
+    renderTablaRedes(redesData);
     renderIpressTable(allIpressData);
 
-    document.getElementById('last-update').textContent =
-      'Actualizado: ' + new Date().toLocaleTimeString('es-PE');
+    document.getElementById('last-update').textContent=
+      'Actualizado: '+new Date().toLocaleTimeString('es-PE');
 
-  } catch(e) {
-    document.getElementById('tabla-redes').innerHTML =
-      `<div class="loading" style="color:#c0392b">Error: ${e.message}</div>`;
+  }catch(e){
+    document.getElementById('tabla-redes').innerHTML=
+      `<div class="loading" style="color:#c0392b">Error al cargar: ${e.message}</div>`;
   }
 }
 
-window.addEventListener('load', () => {
-  const sess = getSession();
-  if (!sess || sess.tipo !== 'nacional') { window.location.href='index.html'; return; }
+window.addEventListener('load',()=>{
+  const sess=getSession();
+  if(!sess||sess.tipo!=='nacional'){window.location.href='index.html';return;}
   cargarDatos();
-  setInterval(cargarDatos, 60000);
+  setInterval(cargarDatos,60000);
 });
 </script>
 </body>
