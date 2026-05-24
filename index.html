@@ -399,31 +399,38 @@ async function iniciarFormulario(red, ipress) {
   preCount = lista.length;
   document.getElementById('st-cargados').textContent = preCount;
 
-  // Load existing records from DB
+  // PASO 1: Cargar siempre los locadores GOPEE como filas vacías
+  lista.forEach(l => agregarFila(l.grupo, l.esp, '', '', '', '', '', '', '', true));
+  recalc();
+
+  // PASO 2: Si hay registros guardados en BD, sobrescribir con esos datos
   try {
     const existing = await sbGet('registros',
-      `ipress_nombre=eq.${encodeURIComponent(ipress)}&red_codigo=eq.${encodeURIComponent(red)}&select=*`);
+      `ipress_nombre=eq.${encodeURIComponent(ipress)}&red_codigo=eq.${encodeURIComponent(red)}&select=*&limit=2000`);
 
     if (existing.length > 0) {
-      // Load saved records
+      // Limpiar filas vacías y cargar datos guardados
+      document.getElementById('cuerpo').innerHTML = '';
+      FC = 0;
       existing.forEach(r => {
-        const id = agregarFila(r.grupo_ocupacional, r.especialidad||'',
+        const id = agregarFila(
+          r.grupo_ocupacional, r.especialidad||'',
           r.dni||'', r.prestacion||'', r.orden_compra||'',
           r.prod_abril||'', r.prod_mayo||'', r.prod_junio||'',
-          r.riesgo||'', r.grupo_ocupacional !== '' && lista.some(l=>l.grupo===r.grupo_ocupacional));
+          r.riesgo||'',
+          lista.some(l => l.grupo === r.grupo_ocupacional)
+        );
         rowIds[id] = r.id;
       });
       toast(`✓ ${existing.length} registros cargados desde la base de datos`);
+      recalc();
     } else {
-      // Pre-load from GOPEE approved list
-      lista.forEach(l => agregarFila(l.grupo, l.esp, '', '', '', '', '', '', '', true));
+      toast(`✓ ${lista.length} locadores GOPEE cargados`);
     }
   } catch(e) {
-    // Offline: load from GOPEE list
-    lista.forEach(l => agregarFila(l.grupo, l.esp, '', '', '', '', '', '', '', true));
-    toast('Cargado sin conexión. Guarde cuando tenga internet.', true);
+    // Sin conexión: ya se cargaron los locadores en PASO 1
+    toast('Sin conexión a BD. Trabajando con lista GOPEE local.', true);
   }
-  recalc();
 }
 
 /* ══ GUARDAR EN BD ══ */
