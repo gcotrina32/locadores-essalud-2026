@@ -296,10 +296,33 @@ function toast(msg, err=false, dur=3500) {
 }
 
 /* ══ LOGIN ══ */
+async function fetchWithTimeout(url, options={}, timeoutMs=8000) {
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, {...options, signal: controller.signal});
+    clearTimeout(tid);
+    return r;
+  } catch(e) {
+    clearTimeout(tid);
+    throw e;
+  }
+}
+
+async function sbGetTimeout(table, params='') {
+  const r = await fetchWithTimeout(`${SB_URL}/rest/v1/${table}?${params}`, {
+    headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+  }, 8000);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
 async function doLogin() {
   const clave = document.getElementById('login-clave').value.trim();
   if (!clave) { toast('Ingrese su clave de acceso', true); return; }
-  document.getElementById('login-err').style.display = 'none';
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+  errEl.textContent = 'Clave incorrecta. Intente nuevamente.';
 
   // Check Nacional FIRST (no DB call needed)
   if (clave === 'GCOP-GFPS-NACIONAL-2026') {
@@ -310,13 +333,13 @@ async function doLogin() {
 
   // Show loading
   const btn = document.querySelector('.btn-login');
-  btn.textContent = 'Verificando...';
+  btn.textContent = '⏳ Verificando...';
   btn.disabled = true;
 
   try {
     // Check Red (claves tipo RED-XXXX-2026)
     if (clave.startsWith('RED-')) {
-      const rows = await sbGet('redes', `clave=eq.${encodeURIComponent(clave)}&select=*`);
+      const rows = await sbGetTimeout('redes', `clave=eq.${encodeURIComponent(clave)}&select=*`);
       if (rows.length > 0) {
         const red = rows[0];
         setSession({tipo:'red', red: red.codigo, nombre: red.nombre, clave});
@@ -324,10 +347,9 @@ async function doLogin() {
         return;
       }
     }
-
     // Check IPRESS (claves tipo IP-XXXX-2026)
-    if (clave.startsWith('IP-')) {
-      const rows = await sbGet('ipress', `clave=eq.${encodeURIComponent(clave)}&select=*`);
+    else if (clave.startsWith('IP-')) {
+      const rows = await sbGetTimeout('ipress', `clave=eq.${encodeURIComponent(clave)}&select=*`);
       if (rows.length > 0) {
         const ip = rows[0];
         setSession({tipo:'ipress', red: ip.red_codigo, ipress: ip.nombre, clave});
@@ -337,10 +359,14 @@ async function doLogin() {
     }
 
     // If neither matched
-    document.getElementById('login-err').style.display = 'block';
+    errEl.style.display = 'block';
   } catch(e) {
-    document.getElementById('login-err').style.display = 'block';
-    document.getElementById('login-err').textContent = 'Error de conexión. Verifique su internet e intente nuevamente.';
+    if (e.name === 'AbortError') {
+      errEl.textContent = 'Tiempo de espera agotado. Verifique su conexión e intente nuevamente.';
+    } else {
+      errEl.textContent = 'Error de conexión: ' + (e.message||'intente nuevamente.');
+    }
+    errEl.style.display = 'block';
     console.error('Login error:', e);
   } finally {
     btn.textContent = '🔒 Ingresar';
