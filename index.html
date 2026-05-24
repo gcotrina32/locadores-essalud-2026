@@ -463,9 +463,10 @@ async function guardarBD(definitivo=false) {
       const pv     = tr.querySelector('.prest-val')?.value || '';
       const pl     = tr.querySelector('.prest-libre')?.value.trim() || '';
       const prest  = pv==='Otros'&&pl ? pl : pv;
-      const abr    = parseInt(tr.querySelector('.inp-abr')?.value)||0;
-      const may    = parseInt(tr.querySelector('.inp-may')?.value)||0;
-      const jun    = parseInt(tr.querySelector('.inp-jun')?.value)||0;
+      const numInputs = tr.querySelectorAll('.inp-num-prod');
+      const abr    = parseInt(numInputs[0]?.dataset?.raw)||0;
+      const may    = parseInt(numInputs[1]?.dataset?.raw)||0;
+      const jun    = parseInt(numInputs[2]?.dataset?.raw)||0;
       const riesgo = tr.querySelector('.inp-riesgo')?.value.trim() || '';
       if (!grupo) return;
       rows.push({
@@ -890,8 +891,9 @@ function recalc(){
     if(i>=preCount) adicionales++;
   });
   document.getElementById("st-cargados").textContent=preCount;
-  document.getElementById("st-completos").textContent=completos;
-  document.getElementById("st-adicionales").textContent=adicionales;
+  document.getElementById("st-completas").textContent=completos;
+  const pendientes=document.querySelectorAll("#cuerpo tr").length - completos;
+  document.getElementById("st-pendientes").textContent=pendientes;
 }
 
 /* ══ AUTOSAVE ══ */
